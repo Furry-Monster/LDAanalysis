@@ -1,0 +1,19 @@
+version: "3.8"
+
+services:
+  textmining:
+    build: .
+    container_name: textmining
+    volumes:
+      - .:/app
+      - ./output:/app/output
+      - ./logs:/app/logs
+    environment:
+      - PYTHONPATH=/app
+      - WORDCLOUD_FONT_PATH=/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc
+    stdin_open: true # docker run -i
+    tty: true # docker run -t
+
+volumes:
+  output:
+  logs:
