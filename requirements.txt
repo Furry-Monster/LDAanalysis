@@ -1,0 +1,9 @@
+selenium
+jieba
+wordcloud
+matplotlib
+gensim
+pandas
+numpy
+seaborn
+pyLDAvis 

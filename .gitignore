@@ -39,12 +39,6 @@ ENV/
 # Project specific
 output/
 logs/
-*.log
-config.json
-*.csv
-*.txt
-*.png
-*.html
 
 # OS specific
 .DS_Store
