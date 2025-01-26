@@ -28,6 +28,12 @@ class WordCloudGenerator:
         """获取字体文件路径"""
         # 可能的字体路径
         possible_paths = [
+            # Windows字体
+            'C:\\Windows\\Fonts\\simhei.ttf',  # 微软雅黑
+            'C:\\Windows\\Fonts\\msyh.ttf',  # 微软雅黑
+            'C:\\Windows\\Fonts\\simfang.ttf',  # 楷体
+            'C:\\Windows\\Fonts\\simsun.ttf',  # 宋体
+            'C:\\Windows\\Fonts\\simkai.ttf',  # 楷体
             # Ubuntu字体
             '/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc',
             '/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc',

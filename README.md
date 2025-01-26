@@ -2,6 +2,11 @@
 
 一个基于 Python 的淘宝商品评论爬取和分析系统，支持评论爬取、文本分析、主题建模和可视化。
 
+![img.png](Images/img.png)
+
+![wordcloud.png](./Images/wordcloud.png)
+
+![img.png](Images/img1.png)
 ## 功能特点
 
 - 自动爬取淘宝商品评论
@@ -141,6 +146,7 @@ TextMining/
 3. **字体问题**
 
    - 安装所需的中文字体：`sudo apt-get install fonts-noto-cjk`
+   - Windows 系统字体问题，请查看issue
 
 ## License
 
