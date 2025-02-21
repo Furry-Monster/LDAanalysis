@@ -18,7 +18,7 @@
 
 ## 环境要求
 
-- Python 3.9+
+- Python 3.10+
 - Chrome 浏览器
 - Docker（可选）
 
@@ -43,13 +43,13 @@
 1. 克隆项目：
    ```bash
    git clone <repository-url>
-   cd TextMining
+   cd LDAanalysis
    ```
 
 
 2. 创建虚拟环境：
    ```bash
-   python -m venv venv
+   python -m venv
    source venv/bin/activate # Linux/Mac
 
    .\venv\Scripts\activate # Windows
