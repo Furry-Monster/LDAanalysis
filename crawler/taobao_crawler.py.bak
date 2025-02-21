@@ -101,10 +101,6 @@ class TaobaoCommentCrawler:
             "div.review-details"
         ]
         
-        # 添加固定等待时间,等待评论加载
-        print("等待页面加载评论...")
-        time.sleep(10)  # 固定等待10秒
-        
         for selector in comment_selectors:
             try:
                 # 等待评论加载

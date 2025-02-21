@@ -1,0 +1,35 @@
+{
+    "CRAWLER": {
+        "MAX_PAGES": 10,
+        "WAIT_TIME": {
+            "MIN": 1,
+            "MAX": 3
+        },
+        "LOGIN_TIMEOUT": 30,
+        "RETRY_TIMES": 3
+    },
+    "ANALYSIS": {
+        "MIN_WORD_LENGTH": 2,
+        "TOP_WORDS_COUNT": 100,
+        "TOPIC_COUNT": 3,
+        "WORDS_PER_TOPIC": 10
+    },
+    "VISUALIZATION": {
+        "WORDCLOUD": {
+            "WIDTH": 800,
+            "HEIGHT": 400,
+            "MAX_WORDS": 100,
+            "MAX_FONT_SIZE": 100
+        },
+        "TOPIC_PLOT": {
+            "FIGURE_WIDTH": 10,
+            "FIGURE_HEIGHT": 6,
+            "DPI": 300
+        }
+    },
+    "OUTPUT": {
+        "BASE_DIR": "output",
+        "KEEP_RUNS": 5,
+        "ENCODING": "utf-8-sig"
+    }
+}
