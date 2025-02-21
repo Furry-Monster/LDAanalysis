@@ -147,6 +147,11 @@ TextMining/
 
    - 安装所需的中文字体：`sudo apt-get install fonts-noto-cjk`
    - Windows 系统字体问题，请查看issue
+4. **SSL证书问题**
+
+   - pip install --upgrade requests urllib3 pyOpenSSL 更新依赖
+   - 关闭网络代理，或者仅使用系统代理
+   - 修改源代码，指定网站所需的 TLS 版本
 
 ## License
 
