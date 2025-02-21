@@ -2,6 +2,8 @@
 
 一个基于 Python 的淘宝商品评论爬取和分析系统，支持评论爬取、文本分析、主题建模和可视化。
 
+# 注：不要试图使用这个项目，错误很多，真的需要开盖就用，请使用最早的一个版本
+
 ![img.png](Images/img.png)
 
 ![wordcloud.png](./Images/wordcloud.png)

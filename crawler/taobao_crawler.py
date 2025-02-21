@@ -4,7 +4,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from selenium.webdriver.chrome.options import Options
-from contextlib import contextmanager
 import time
 import random
 from utils import config
@@ -101,6 +100,10 @@ class TaobaoCommentCrawler:
             "div.tb-rev-item div.J_KgRate_ReviewContent",
             "div.review-details"
         ]
+        
+        # 添加固定等待时间,等待评论加载
+        print("等待页面加载评论...")
+        time.sleep(3)  # 固定等待3秒
         
         for selector in comment_selectors:
             try:

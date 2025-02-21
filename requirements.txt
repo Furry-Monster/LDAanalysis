@@ -6,4 +6,5 @@ gensim
 pandas
 numpy
 seaborn
-pyLDAvis 
+pyLDAvis
+snownlp
