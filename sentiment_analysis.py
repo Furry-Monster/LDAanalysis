@@ -8,6 +8,7 @@ import os
 import re
 import jieba
 from wordcloud import WordCloud
+from PIL import Image
 
 plt.rcParams['font.sans-serif'] = ['SimHei']  # 设置中文显示
 plt.rcParams['axes.unicode_minus'] = False
@@ -152,7 +153,8 @@ def generate_wordcloud(texts, title, save_path):
                   '可以', '已经', '这次', '一次', '次', '给', '用', '说', '看', '觉得'}
 
     if '负面' in title:
-        negative_stop_words = {'喜欢', '好吃', '棒', '好', '满意', '赞', '推荐', '很好', '非常好', '特别好', '超好', '给力', '完美'}
+        negative_stop_words = {'喜欢', '好吃', '棒', '好', '满意', '赞', '推荐', '很好', '非常好', '特别好', '超好',
+                               '给力', '完美'}
         stop_words.update(negative_stop_words)
 
     words = []
@@ -161,29 +163,90 @@ def generate_wordcloud(texts, title, save_path):
                       if len(word) > 1 and word not in stop_words])
 
     text = ' '.join(words)
+    
+    print(f"处理的文本长度: {len(text)}")  # 调试信息
+    if len(text) < 10:
+        print("警告: 文本内容太少，可能无法生成词云")
+        return
 
-    mask = plt.imread('mask.png').astype(np.uint8)
+    # 读取并处理蒙版图片
+    try:
+        mask_path = 'mask.png'
+        print(f"尝试读取蒙版图片: {mask_path}")  # 调试信息
+        
+        # 直接使用matplotlib读取图片
+        mask_array = plt.imread(mask_path)
+        
+        # 如果是RGBA图片，转换为灰度图
+        if len(mask_array.shape) == 3:
+            if mask_array.shape[2] == 4:
+                # 使用alpha通道
+                mask_array = mask_array[:, :, 3]
+            else:
+                # 转换RGB为灰度
+                mask_array = np.mean(mask_array, axis=2)
+        
+        # 确保蒙版是二值的
+        mask_array = (mask_array * 255).astype(np.uint8)
+        
+        print(f"蒙版形状: {mask_array.shape}")  # 调试信息
+        print(f"蒙版值范围: {mask_array.min()} - {mask_array.max()}")  # 调试信息
+
+    except Exception as e:
+        print(f"读取蒙版图片时出错: {str(e)}")
+        return
+
+    # 设置词云颜色
+    if '负面' in title:
+        colors = ['#FF0000', '#FF3333', '#FF6666', '#FF9999']  # 红色系
+    else:
+        colors = ['#FFA500', '#FFB733', '#FFC966', '#FFDB99']  # 橙色系
+
+    def random_color_func(word, font_size, position, orientation, **kwargs):
+        return np.random.choice(colors)
 
     wc = WordCloud(
         font_path='simhei.ttf',
-        width=1200,
-        height=800,
+        width=mask_array.shape[1],
+        height=mask_array.shape[0],
         background_color='white',
-        max_words=100,
+        max_words=200,
         max_font_size=150,
-        min_font_size=10,
+        min_font_size=8,
         random_state=42,
-        mask=mask
+        mask=mask_array,
+        color_func=random_color_func,
+        prefer_horizontal=0.7,
+        relative_scaling=0.5,
+        repeat=False
     )
 
-    wc.generate(text)
+    try:
+        print("开始生成词云...")  # 调试信息
+        wc.generate(text)
+        print("词云生成完成")  # 调试信息
 
-    plt.figure(figsize=(15, 10))
-    plt.imshow(wc, interpolation='bilinear')
-    plt.axis('off')
-    plt.title(title, fontsize=20, pad=20)
-    plt.savefig(save_path, bbox_inches='tight', dpi=300)
-    plt.close()
+        plt.figure(figsize=(15, 10))
+        plt.imshow(wc, interpolation='bilinear')
+        plt.axis('off')
+        plt.title(title, fontsize=20, pad=20)
+        
+        # 保存前检查目录是否存在
+        save_dir = os.path.dirname(save_path)
+        if not os.path.exists(save_dir):
+            os.makedirs(save_dir)
+            
+        plt.savefig(save_path, 
+                    bbox_inches='tight', 
+                    dpi=300, 
+                    facecolor='white',
+                    edgecolor='none')
+        print(f"词云图已保存到: {save_path}")  # 调试信息
+        plt.close()
+
+    except Exception as e:
+        print(f"生成词云图时出错: {str(e)}")
+        plt.close()
 
 
 def create_visualizations(sentiment_results, output_dir):
