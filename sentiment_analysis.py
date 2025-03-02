@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -7,8 +8,10 @@ import os
 import re
 import jieba
 from wordcloud import WordCloud
+
 plt.rcParams['font.sans-serif'] = ['SimHei']  # 设置中文显示
 plt.rcParams['axes.unicode_minus'] = False
+
 
 def is_fake_review(text):
     """
@@ -17,7 +20,7 @@ def is_fake_review(text):
     # 过于简短的评论
     if len(text.strip()) < 8:  # 提高最小长度要求
         return True
-        
+
     # 模板化好评关键词（扩充）
     template_patterns = [
         r'很好|非常好|特别好|挺好|真的很好|棒棒|超级好|特别棒',
@@ -35,15 +38,16 @@ def is_fake_review(text):
         r'(包装|快递).*(完好|完整|仔细)',
         r'(客服|售后).*(热情|耐心|周到)'
     ]
-    
+
     # 检查是否匹配模板化表达
     for pattern in template_patterns:
         if re.search(pattern, text):
             # 如果是模板化表达，检查评论长度和是否包含具体细节
             if len(text) < 20 or not re.search(r'[具体细节|味道|口感|包装|价格|服务].{8,}', text):
                 return True
-    
+
     return False
+
 
 def load_data(directory):
     all_comments = []
@@ -61,7 +65,7 @@ def load_data(directory):
                                     'content': comment.strip(),
                                     'timestamp': timestamp_dir
                                 })
-        
+
         if all_comments:
             print(f"成功加载评论数据，共{len(all_comments)}条评论")
             # 创建输出目录
@@ -77,6 +81,7 @@ def load_data(directory):
         print(f"加载数据时出错: {str(e)}")
         return [], None
 
+
 def analyze_sentiment(comments):
     results = []
     try:
@@ -86,10 +91,10 @@ def analyze_sentiment(comments):
                 # 过滤虚假好评
                 if is_fake_review(text):
                     continue
-                    
+
                 s = SnowNLP(text)
                 sentiment_score = s.sentiments
-                
+
                 # 大幅调整情感分数权重，确保负面评论占比超过50%
                 if sentiment_score > 0.5:
                     # 显著降低正面评分
@@ -97,35 +102,35 @@ def analyze_sentiment(comments):
                 else:
                     # 大幅提高负面评分的权重
                     adjusted_score = sentiment_score * 1.8  # 更强烈地放大负面评分
-                
+
                 # 限制分数范围在0-1之间
                 adjusted_score = max(0, min(1, adjusted_score))
-                
+
                 # 提高负面判定阈值
                 results.append({
                     'text': text,
                     'score': adjusted_score,
                     'sentiment': 'positive' if adjusted_score > 0.55 else 'negative'  # 提高正负面阈值
                 })
-        
+
         print(f"情感分析完成，共处理{len(results)}条有效评论")
-        
+
         # 检查负面评论比例
         negative_count = sum(1 for r in results if r['sentiment'] == 'negative')
         negative_ratio = negative_count / len(results) if results else 0
         print(f"负面评论比例：{negative_ratio:.1%}")
-        
+
         # 如果负面评论比例不足50%，进一步调整分数
         if negative_ratio < 0.5:
             for result in results:
                 result['score'] = result['score'] * 0.8  # 整体降低评分
                 result['sentiment'] = 'positive' if result['score'] > 0.55 else 'negative'
-            
+
             # 重新计算比例
             negative_count = sum(1 for r in results if r['sentiment'] == 'negative')
             negative_ratio = negative_count / len(results) if results else 0
             print(f"调整后负面评论比例：{negative_ratio:.1%}")
-        
+
         if len(results) == 0:
             print("警告：没有有效的评论数据被处理")
         return results
@@ -133,40 +138,46 @@ def analyze_sentiment(comments):
         print(f"情感分析过程中出错: {str(e)}")
         return []
 
+
 def generate_wordcloud(texts, title, save_path):
     """
     生成词云图
     """
     # 分词并过滤停用词
-    stop_words = {'的', '了', '和', '是', '就', '都', '而且', '还有', '但是', '就是', 
-                 '这个', '那个', '这些', '那些', '有', '也', '很', '非常', '特别',
-                 '不错', '没有', '还', '比较', '感觉', '一个', '啊', '呢', '吧', '挺',
-                 '买', '收到', '下单', '发货', '物流', '快递', '包装', '评价', '追评',
-                 '天', '月', '日', '号', '年', '后', '真的', '确实', '一下', '一直',
-                 '可以', '已经', '这次', '一次', '次', '给', '用', '说', '看', '觉得'}
-    
+    stop_words = {'的', '了', '和', '是', '就', '都', '而且', '还有', '但是', '就是',
+                  '这个', '那个', '这些', '那些', '有', '也', '很', '非常', '特别',
+                  '不错', '没有', '还', '比较', '感觉', '一个', '啊', '呢', '吧', '挺',
+                  '买', '收到', '下单', '发货', '物流', '快递', '包装', '评价', '追评',
+                  '天', '月', '日', '号', '年', '后', '真的', '确实', '一下', '一直',
+                  '可以', '已经', '这次', '一次', '次', '给', '用', '说', '看', '觉得'}
+
+    if '负面' in title:
+        negative_stop_words = {'喜欢', '好吃', '棒', '好', '满意', '赞', '推荐', '很好', '非常好', '特别好', '超好', '给力', '完美'}
+        stop_words.update(negative_stop_words)
+
     words = []
     for text in texts:
-        words.extend([word for word in jieba.cut(text) 
-                     if len(word) > 1 and word not in stop_words])
-    
+        words.extend([word for word in jieba.cut(text)
+                      if len(word) > 1 and word not in stop_words])
+
     text = ' '.join(words)
-    
-    # 生成词云
+
+    mask = plt.imread('mask.png').astype(np.uint8)
+
     wc = WordCloud(
-        font_path='simhei.ttf',  # 使用黑体
+        font_path='simhei.ttf',
         width=1200,
         height=800,
         background_color='white',
         max_words=100,
         max_font_size=150,
         min_font_size=10,
-        random_state=42
+        random_state=42,
+        mask=mask
     )
-    
+
     wc.generate(text)
-    
-    # 显示词云图
+
     plt.figure(figsize=(15, 10))
     plt.imshow(wc, interpolation='bilinear')
     plt.axis('off')
@@ -174,26 +185,28 @@ def generate_wordcloud(texts, title, save_path):
     plt.savefig(save_path, bbox_inches='tight', dpi=300)
     plt.close()
 
+
 def create_visualizations(sentiment_results, output_dir):
     try:
         if not sentiment_results:
             print("错误：没有可用于可视化的数据")
             return None
-            
+
         df = pd.DataFrame(sentiment_results)
         print("数据框架中的列：", df.columns.tolist())
         print("评论情感分布：")
         print(df['sentiment'].value_counts(normalize=True).round(3) * 100)
-        
-        # 1. 情感分布饼图
+
+        # 1. 情感分布环形图
         plt.figure(figsize=(10, 6))
         sentiment_counts = df['sentiment'].value_counts()
-        plt.pie(sentiment_counts, labels=sentiment_counts.index, 
-                autopct='%1.1f%%', colors=['lightgreen', 'lightcoral'])
+        plt.pie(sentiment_counts, labels=sentiment_counts.index,
+                autopct='%1.1f%%', colors=['gold', 'darkgoldenrod'],  # 修改颜色
+                wedgeprops=dict(width=0.3))  # 设置宽度以创建环形图
         plt.title('评论情感分布(已过滤虚假好评)')
         plt.savefig(os.path.join(output_dir, 'visualization', 'sentiment_distribution.png'))
         plt.close()
-        
+
         # 2. 情感分数分布直方图
         plt.figure(figsize=(10, 6))
         sns.histplot(data=df, x='score', bins=30)
@@ -202,7 +215,7 @@ def create_visualizations(sentiment_results, output_dir):
         plt.ylabel('频率')
         plt.savefig(os.path.join(output_dir, 'visualization', 'sentiment_scores.png'))
         plt.close()
-        
+
         # 3. 生成正面评论词云
         positive_texts = df[df['score'] > 0.7]['text'].tolist()
         if positive_texts:
@@ -211,7 +224,7 @@ def create_visualizations(sentiment_results, output_dir):
                 '正面评论词云图',
                 os.path.join(output_dir, 'visualization', 'positive_wordcloud.png')
             )
-        
+
         # 4. 生成负面评论词云
         negative_texts = df[df['score'] < 0.3]['text'].tolist()
         if negative_texts:
@@ -220,21 +233,22 @@ def create_visualizations(sentiment_results, output_dir):
                 '负面评论词云图',
                 os.path.join(output_dir, 'visualization', 'negative_wordcloud.png')
             )
-        
+
         return df
     except Exception as e:
         print(f"创建可视化时出错: {str(e)}")
         return None
 
+
 def generate_report(df, output_dir):
     # 获取典型评论，增加负面评论的展示比例
     positive_comments = df[df['score'] > 0.6].sort_values('score', ascending=False)['text'].head(4)
     negative_comments = df[df['score'] < 0.4].sort_values('score')['text'].head(10)  # 显著增加负面评论数量
-    
+
     # 计算评分统计
     avg_score = df['score'].mean()
     negative_ratio = len(df[df['score'] < 0.55]) / len(df)  # 使用更高的负面判定阈值
-    
+
     report = {
         "总体评分分析": {
             "平均情感得分": round(avg_score, 3),
@@ -266,12 +280,12 @@ def generate_report(df, output_dir):
             }
         }
     }
-    
+
     report_file = os.path.join(output_dir, 'data', 'sentiment_analysis_report.json')
     with open(report_file, 'w', encoding='utf-8') as f:
         json.dump(report, f, ensure_ascii=False, indent=4)
     print(f"分析报告已保存到: {report_file}")
-    
+
     # 打印关键发现
     print("\n关键发现：")
     print(f"- 平均情感得分：{avg_score:.3f}")
@@ -282,17 +296,18 @@ def generate_report(df, output_dir):
     print("  3. 口感与预期差距大")
     print("  4. 价格偏高")
 
+
 def main():
     comments, output_dir = load_data('./output')
     if not comments or not output_dir:
         print("错误：未能加载评论数据")
         return
-    
+
     sentiment_results = analyze_sentiment(comments)
     if not sentiment_results:
         print("错误：情感分析未能生成结果")
         return
-    
+
     df = create_visualizations(sentiment_results, output_dir)
     if df is not None:
         generate_report(df, output_dir)
@@ -300,5 +315,6 @@ def main():
     else:
         print("错误：可视化过程失败")
 
+
 if __name__ == "__main__":
-    main() 
+    main()
